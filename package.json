@@ -4,7 +4,8 @@
   "description": "GitHub Project Management MCP Server",
   "main": "src/server.py",
   "scripts": {
-    "start": "python src/server.py"
+    "start": "python src/server.py",
+    "check-refactoring": "node scripts/check-refactoring-progress.js"
   },
   "keywords": ["mcp", "github", "projects"],
   "author": ".miast0",
