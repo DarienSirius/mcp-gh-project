@@ -5,17 +5,30 @@ Provides tools for managing GitHub Projects via GraphQL API.
 """
 import json
 import logging
+import traceback
+from datetime import datetime
+from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 from .graphql_client import GitHubGraphQLClient
 from .auth import load_github_token
 
-# Configure logging to stderr (never stdout - corrupts JSON-RPC)
+# Setup file-based logging for autonomous telemetry
+log_dir = Path(__file__).parent.parent / "logs"
+log_dir.mkdir(exist_ok=True)
+startup_log = log_dir / "startup.log"
+crash_log = log_dir / "crash.log"
+
+# Configure logging to both stderr AND file
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler()]
+    handlers=[
+        logging.StreamHandler(),  # stderr for VSCode
+        logging.FileHandler(startup_log, mode='a')  # file for agent
+    ]
 )
 logger = logging.getLogger(__name__)
+logger.info(f"=== MCP Server Starting: {datetime.now().isoformat()} ===")
 
 # Initialize FastMCP server
 mcp = FastMCP("gh-project")
@@ -470,4 +483,14 @@ def main():
     mcp.run(transport='stdio')
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+        logger.info("=== MCP Server Shutdown Gracefully ===")
+    except Exception as e:
+        # Write crash to file for autonomous detection
+        with open(crash_log, 'a') as f:
+            f.write(f"\n=== CRASH: {datetime.now().isoformat()} ===\n")
+            f.write(f"Error: {str(e)}\n")
+            f.write(f"Traceback:\n{traceback.format_exc()}\n")
+        logger.error(f"FATAL: Server crashed - {e}")
+        raise

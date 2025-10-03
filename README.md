@@ -12,6 +12,8 @@ pip install "mcp[cli]" httpx python-dotenv
 
 ## Usage
 
+### Windows (PowerShell)
+
 Configure in VSCode workspace:
 
 ```json
@@ -22,6 +24,29 @@ Configure in VSCode workspace:
   }
 }
 ```
+
+**Note:** PowerShell wrapper loads `GITHUB_PERSONAL_ACCESS_TOKEN` from `.env.github` at runtime.
+
+### Linux/macOS (Future)
+
+Bash wrapper implementation needed. Server can run directly:
+
+```json
+{
+  "gh-project-miast0": {
+    "command": "python",
+    "args": ["-m", "src.server"],
+    "cwd": "/path/to/mcp-gh-project",
+    "env": {
+      "GITHUB_PERSONAL_ACCESS_TOKEN": "${localEnv:GITHUB_PERSONAL_ACCESS_TOKEN}"
+    }
+  }
+}
+```
+
+### .devcontainer (Future)
+
+Same as Linux/macOS - direct Python module execution with environment variable passthrough.
 
 ## Available Tools
 

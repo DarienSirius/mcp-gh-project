@@ -3,8 +3,8 @@
 
 $ErrorActionPreference = "Stop"
 
-# Path to .env.github file
-$EnvFile = Join-Path $PSScriptRoot "../../.env.github"
+# Path to .env.github file (3 levels up: scripts -> mcp-gh-project -> _ -> .miast0)
+$EnvFile = Join-Path $PSScriptRoot "../../../.env.github"
 
 # Check if .env.github exists
 if (-not (Test-Path $EnvFile)) {
@@ -37,16 +37,15 @@ if (-not $PythonPath) {
     exit 1
 }
 
-# Get path to server.py
-$ServerPath = Join-Path $PSScriptRoot "../src/server.py"
-if (-not (Test-Path $ServerPath)) {
-    Write-Error "server.py not found at $ServerPath"
-    exit 1
-}
+# Get path to project root directory (for module execution)
+$ProjectRoot = Join-Path $PSScriptRoot ".."
+$ProjectRoot = Resolve-Path $ProjectRoot
 
 Write-Host "Starting mcp-gh-project MCP server..." -ForegroundColor Cyan
 Write-Host "Python: $PythonPath" -ForegroundColor Gray
-Write-Host "Server: $ServerPath" -ForegroundColor Gray
+Write-Host "Project Root: $ProjectRoot" -ForegroundColor Gray
 
 # Launch Python MCP server with environment variables
-& $PythonPath $ServerPath
+# Use -m to run as module (enables relative imports)
+Set-Location $ProjectRoot
+& $PythonPath -m src.server
