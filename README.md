@@ -20,12 +20,12 @@ Configure in VSCode workspace:
 {
   "gh-project-miast0": {
     "command": "powershell.exe",
-    "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "C:\\Users\\victorb\\code\\.miast0\\_\\mcp-gh-project\\scripts\\mcp-gh-project-wrapper.ps1"]
+    "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "C:\\path\\to\\mcp-gh-project\\scripts\\mcp-gh-project-wrapper.ps1"]
   }
 }
 ```
 
-**Note:** PowerShell wrapper loads `GITHUB_PERSONAL_ACCESS_TOKEN` from `.env.github` at runtime.
+**Note:** Replace `C:\\path\\to\\mcp-gh-project` with your actual clone location. PowerShell wrapper loads `GITHUB_PERSONAL_ACCESS_TOKEN` from `.env.github` at runtime (3 levels up from scripts/).
 
 ### Linux/macOS (Future)
 
