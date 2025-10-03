@@ -1,0 +1,12 @@
+{
+  "name": "mcp-gh-project",
+  "version": "0.0.1",
+  "description": "GitHub Project Management MCP Server",
+  "main": "src/server.py",
+  "scripts": {
+    "start": "python src/server.py"
+  },
+  "keywords": ["mcp", "github", "projects"],
+  "author": ".miast0",
+  "license": "MIT"
+}
