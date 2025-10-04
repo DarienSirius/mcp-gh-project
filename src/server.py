@@ -5,6 +5,7 @@ Provides tools for managing GitHub Projects via GraphQL API.
 """
 import json
 import logging
+import aiohttp
 from mcp.server.fastmcp import FastMCP
 from .graphql_client import GitHubGraphQLClient
 from .auth import load_github_token
@@ -451,11 +452,77 @@ async def get_project_fields(project_id: str) -> str:
     
     return json.dumps({"fields": fields}, indent=2)
 
+@mcp.tool()
+async def list_notifications(all_notifications: bool = False, participating: bool = False) -> str:
+    """
+    List notifications for the authenticated user.
+    
+    Args:
+        all_notifications: If true, show notifications marked as read (default: false)
+        participating: If true, only show notifications where user is directly participating (default: false)
+    
+    Returns:
+        JSON string with list of notifications
+    """
+    logger.info(f"list_notifications called (all={all_notifications}, participating={participating})")
+    
+    # Use REST API for notifications
+    url = "https://api.github.com/notifications"
+    params = {}
+    if all_notifications:
+        params["all"] = "true"
+    if participating:
+        params["participating"] = "true"
+    
+    headers = {
+        "Authorization": f"token {github_client.token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28"
+    }
+    
+    import aiohttp
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=headers, params=params) as response:
+            if response.status != 200:
+                error_text = await response.text()
+                return json.dumps({"error": f"HTTP {response.status}: {error_text}"}, indent=2)
+            
+            notifications = await response.json()
+            return json.dumps({"notifications": notifications}, indent=2)
+
+@mcp.tool()
+async def mark_notification_read(thread_id: str) -> str:
+    """
+    Mark a notification thread as read.
+    
+    Args:
+        thread_id: The notification thread ID
+    
+    Returns:
+        JSON string with success status
+    """
+    logger.info(f"mark_notification_read called for thread {thread_id}")
+    
+    url = f"https://api.github.com/notifications/threads/{thread_id}"
+    headers = {
+        "Authorization": f"token {github_client.token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28"
+    }
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.patch(url, headers=headers) as response:
+            if response.status == 205:  # 205 Reset Content = success
+                return json.dumps({"success": True, "thread_id": thread_id}, indent=2)
+            else:
+                error_text = await response.text()
+                return json.dumps({"error": f"HTTP {response.status}: {error_text}"}, indent=2)
+
 def main():
     """Run the MCP server using stdio transport."""
     global github_client
     
-    logger.info("Starting GitHub Project Management MCP Server v0.0.1")
+    logger.info("Starting GitHub Project Management MCP Server v0.0.2")
     
     # Initialize GitHub client with token from environment
     try:
